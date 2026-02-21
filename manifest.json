@@ -1,0 +1,19 @@
+{
+  "name": "দৈনিক দুআ",
+  "short_name": "দুআ",
+  "description": "দৈনিক দুআ ও যিকর — হিসনুল মুসলিম",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#080a0e",
+  "theme_color": "#080a0e",
+  "lang": "bn",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "ফজর", "url": "/index.html?cat=fajr", "icons": [{"src":"icon.svg","sizes":"any"}] },
+    { "name": "মাগরিব", "url": "/index.html?cat=maghrib", "icons": [{"src":"icon.svg","sizes":"any"}] },
+    { "name": "ইশা", "url": "/index.html?cat=isha", "icons": [{"src":"icon.svg","sizes":"any"}] }
+  ]
+}
