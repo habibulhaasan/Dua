@@ -243,12 +243,16 @@ header {
 #tapArea {
   flex: 1;
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
+  align-items: center; justify-content: flex-start;
   padding: 1rem 2rem;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
+#tapArea::-webkit-scrollbar { width: 2px; }
+#tapArea::-webkit-scrollbar-thumb { background: var(--border); }
 
 /* ripple on tap */
 .ripple {
@@ -265,13 +269,17 @@ header {
 
 .arabic-dua {
   font-family: 'Amiri Quran', serif;
-  font-size: clamp(1.6rem, 6vw, 2.4rem);
+  font-size: var(--arabic-size, clamp(1.6rem, 6vw, 2.4rem));
   line-height: 2.3;
   text-align: center;
   direction: rtl;
   color: var(--text);
   transition: opacity 0.35s, transform 0.35s;
   position: relative; z-index: 1;
+  width: 100%;
+  padding: 1rem 0 2rem;
+  /* center vertically when text is short, scroll when long */
+  margin: auto;
 }
 .arabic-dua.out { opacity: 0; transform: translateY(-14px); }
 .arabic-dua.in { animation: slideIn 0.4s ease; }
@@ -401,7 +409,182 @@ header {
 /* ═══════════════ PRAYERS PAGE ═══════════════ */
 /* Merged into drawer footer */
 
-/* ═══════════════ COMPLETE FLASH ═══════════════ */
+/* ═══════════════ FONT SIZE CONTROL ═══════════════ */
+.font-ctrl {
+  display: flex; align-items: center; gap: 0.5rem;
+  position: absolute; right: 1.25rem; bottom: 0.5rem;
+  z-index: 10;
+}
+.font-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 600;
+  transition: all 0.15s; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.font-btn:active { border-color: var(--gold); color: var(--gold); }
+.font-size-label {
+  font-size: 0.6rem; color: var(--muted);
+  min-width: 24px; text-align: center;
+}
+
+/* ═══════════════ PRAYER TIME POPUP ═══════════════ */
+.prayer-popup-overlay {
+  position: fixed; inset: 0; z-index: 150;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s;
+}
+.prayer-popup-overlay.open { opacity: 1; pointer-events: all; }
+.prayer-popup {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  max-width: 480px; margin: 0 auto;
+  z-index: 160;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border);
+  padding: 1.25rem 1.5rem 2.5rem;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.prayer-popup-overlay.open .prayer-popup {
+  transform: translateY(0);
+}
+.prayer-popup-handle {
+  width: 36px; height: 3px; border-radius: 9999px;
+  background: var(--border); margin: 0 auto 1.25rem;
+}
+.prayer-popup-title {
+  font-size: 0.65rem; color: var(--gold);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 1rem; text-align: center;
+}
+.prayer-popup-city {
+  font-size: 0.75rem; color: var(--muted2);
+  text-align: center; margin-bottom: 0.75rem;
+}
+.prayer-popup-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+.prayer-tile {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  display: flex; flex-direction: column; gap: 0.2rem;
+  transition: border-color 0.2s;
+}
+.prayer-tile.current-prayer {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+}
+.prayer-tile-name {
+  font-size: 0.65rem; color: var(--muted2);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.prayer-tile.current-prayer .prayer-tile-name { color: var(--gold); }
+.prayer-tile-time {
+  font-size: 1.1rem; color: var(--text); font-weight: 600;
+}
+.prayer-tile.current-prayer .prayer-tile-time { color: var(--gold); }
+
+/* ═══════════════ ACCORDION DRAWER ═══════════════ */
+.cat-accordion {
+  border-bottom: 1px solid var(--border);
+}
+.cat-accordion-header {
+  display: flex; align-items: center; gap: 0.85rem;
+  padding: 0.85rem 1.25rem; cursor: pointer;
+  transition: background 0.15s;
+  border-left: 2px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-accordion-header:active { background: var(--gold-dim); }
+.cat-accordion-header.active { border-left-color: var(--gold); background: var(--gold-glow); }
+.cat-accordion-header.current-cat { border-left-color: var(--gold); }
+.cat-accordion-info { flex: 1; min-width: 0; }
+.cat-accordion-name { font-size: 0.84rem; color: var(--text); font-weight: 600; }
+.cat-accordion-count { font-size: 0.62rem; color: var(--muted); margin-top: 0.1rem; }
+.cat-accordion-right {
+  display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;
+}
+.cat-chevron {
+  width: 14px; height: 14px; color: var(--muted);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+.cat-accordion-header.open .cat-chevron { transform: rotate(180deg); }
+
+.cat-dua-list {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+  background: var(--surface2);
+}
+.cat-dua-list.open { max-height: 800px; }
+
+.cat-dua-item {
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  padding: 0.65rem 1.25rem 0.65rem 1.5rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-dua-item:last-child { border-bottom: none; }
+.cat-dua-item:active { background: var(--gold-dim); }
+.cat-dua-item.current { background: var(--gold-dim); }
+.cat-dua-item-num {
+  min-width: 1.4rem; height: 1.4rem;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--muted2);
+  font-size: 0.58rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 0.1rem;
+}
+.cat-dua-item.done .cat-dua-item-num { background: var(--gold-dim); color: var(--gold); }
+.cat-dua-item.current .cat-dua-item-num { background: var(--gold); color: var(--bg); }
+.cat-dua-item-label {
+  font-size: 0.78rem; color: var(--text); line-height: 1.4;
+  flex: 1;
+}
+.cat-dua-item.done .cat-dua-item-label { color: var(--muted2); }
+.cat-dua-item-count {
+  font-size: 0.6rem; color: var(--gold);
+  background: var(--gold-dim);
+  padding: 0.1rem 0.35rem; border-radius: 3px;
+  flex-shrink: 0; margin-top: 0.15rem;
+}
+
+/* ═══════════════ DRAWER SEARCH ═══════════════ */
+.drawer-search {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.drawer-search input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  color: var(--text); font-family: inherit;
+  font-size: 0.78rem; outline: none;
+  transition: border-color 0.2s;
+}
+.drawer-search input::placeholder { color: var(--muted); }
+.drawer-search input:focus { border-color: var(--gold); }
+
+/* wider drawer for accordion */
+.drawer {
+  width: min(92vw, 360px) !important;
+}
+
 .complete-flash {
   position: fixed; inset: 0; z-index: 70;
   display: flex; flex-direction: column;
@@ -474,6 +657,23 @@ header {
 <!-- DRAWER OVERLAY -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 
+<!-- PRAYER TIME POPUP -->
+<div class="prayer-popup-overlay" id="prayerPopupOverlay" onclick="closePrayerPopup()">
+  <div class="prayer-popup" onclick="event.stopPropagation()">
+    <div class="prayer-popup-handle"></div>
+    <div class="prayer-popup-title">🕌 নামাজের সময়</div>
+    <div class="prayer-popup-city" id="popupCity"></div>
+    <div class="prayer-popup-grid" id="prayerPopupGrid">
+      <div class="prayer-tile" id="pp-Fajr"><div class="prayer-tile-name">ফজর</div><div class="prayer-tile-time">--:--</div></div>
+      <div class="prayer-tile" id="pp-Sunrise"><div class="prayer-tile-name">সূর্যোদয়</div><div class="prayer-tile-time">--:--</div></div>
+      <div class="prayer-tile" id="pp-Dhuhr"><div class="prayer-tile-name">যোহর</div><div class="prayer-tile-time">--:--</div></div>
+      <div class="prayer-tile" id="pp-Asr"><div class="prayer-tile-name">আসর</div><div class="prayer-tile-time">--:--</div></div>
+      <div class="prayer-tile" id="pp-Maghrib"><div class="prayer-tile-name">মাগরিব</div><div class="prayer-tile-time">--:--</div></div>
+      <div class="prayer-tile" id="pp-Isha"><div class="prayer-tile-name">ইশা</div><div class="prayer-tile-time">--:--</div></div>
+    </div>
+  </div>
+</div>
+
 <!-- DUA LIST PANEL -->
 <div id="listPanel">
   <div class="list-header">
@@ -491,8 +691,7 @@ header {
   <div class="list-body" id="listBody"></div>
 </div>
 
-
-<!-- SIDE DRAWER -->
+<!-- SIDE DRAWER (Accordion Nav) -->
 <div class="drawer" id="drawer">
   <div class="drawer-header">
     <span class="drawer-title">দুআর বিভাগ</span>
@@ -500,20 +699,10 @@ header {
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
-  <div class="drawer-body" id="drawerBody"></div>
-  <div class="drawer-footer">
-    <div class="prayers-section">
-      <div class="prayers-title">নামাজের সময়</div>
-      <div class="prayer-list" id="prayerList">
-        <div class="prayer-row" id="pr-Fajr"><span class="prayer-row-name">ফজর</span><span class="prayer-row-time">--:--</span></div>
-        <div class="prayer-row" id="pr-Sunrise"><span class="prayer-row-name">সূর্যোদয়</span><span class="prayer-row-time">--:--</span></div>
-        <div class="prayer-row" id="pr-Dhuhr"><span class="prayer-row-name">যোহর</span><span class="prayer-row-time">--:--</span></div>
-        <div class="prayer-row" id="pr-Asr"><span class="prayer-row-name">আসর</span><span class="prayer-row-time">--:--</span></div>
-        <div class="prayer-row" id="pr-Maghrib"><span class="prayer-row-name">মাগরিব</span><span class="prayer-row-time">--:--</span></div>
-        <div class="prayer-row" id="pr-Isha"><span class="prayer-row-name">ইশা</span><span class="prayer-row-time">--:--</span></div>
-      </div>
-    </div>
+  <div class="drawer-search">
+    <input type="search" id="drawerSearch" placeholder="দুআ খুঁজুন..." oninput="filterDrawer(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
   </div>
+  <div class="drawer-body" id="drawerBody"></div>
 </div>
 
 <!-- MAIN APP -->
@@ -529,15 +718,15 @@ header {
       <button class="icon-btn" id="meaningBtn" onclick="toggleMeaning()" title="অর্থ দেখুন">
         <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
       </button>
-      <!-- Dua List -->
-      <button class="icon-btn" onclick="openList()" title="সব দুআ দেখুন">
-        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <!-- Prayer Times popup -->
+      <button class="icon-btn" onclick="openPrayerPopup()" title="নামাজের সময়">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </button>
       <!-- Theme toggle -->
       <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="থিম পরিবর্তন">
         <svg id="themeIcon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
-      <!-- Menu -->
+      <!-- Menu (accordion nav) -->
       <button class="icon-btn" onclick="openDrawer()">
         <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
@@ -553,6 +742,12 @@ header {
   <!-- TAP AREA (full area) -->
   <div id="tapArea" onclick="handleTap(event)">
     <div class="arabic-dua" id="arabicDua"></div>
+    <!-- Font size controls -->
+    <div class="font-ctrl" onclick="event.stopPropagation()">
+      <button class="font-btn" onclick="changeFontSize(-1)" title="ছোট করুন">A−</button>
+      <span class="font-size-label" id="fontSizeLabel"></span>
+      <button class="font-btn" onclick="changeFontSize(1)" title="বড় করুন">A+</button>
+    </div>
   </div>
 
   <!-- Meaning Panel -->
@@ -1641,6 +1836,25 @@ const DB = {
         ref: 'সূরা নামল ২৭:১৯'
       },
     ]
+  },
+
+  // ───────────── ব্যক্তিগত পছন্দের দুআ ─────────────
+  personal: {
+    name: 'বিশেষ দুআ', icon: '⭐', label: 'বিশেষ ও ব্যাপক দুআ',
+    duas: [
+      {
+        label: 'সবচেয়ে ব্যাপক দুআ — নবীর চাওয়া ও পানাহ', count: 3,
+        arabic: 'اللَّهُمَّ إِنِّيْ أَسْأَلُكَ مِنْ خَيْرِ مَا سَأَلَكَ مِنْهُ نَبِيُّكَ مُحَمَّدٌ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ، وَأَعُوْذُ بِكَ مِنْ شَرِّ مَا اسْتَعَاذَ مِنْهُ نَبِيُّكَ مُحَمَّدٌ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ، وَأَنْتَ الْمُسْتَعَانُ، وَعَلَيْكَ الْبَلَاغُ، وَلَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ',
+        bangla: 'হে আল্লাহ! আমি আপনার কাছে সেই সমস্ত কল্যাণ প্রার্থনা করছি যা আপনার নবী মুহাম্মদ (ﷺ) আপনার কাছে প্রার্থনা করেছেন। আর আমি আপনার কাছে সেই সমস্ত অনিষ্ট থেকে আশ্রয় চাইছি যা থেকে আপনার নবী মুহাম্মদ (ﷺ) আপনার কাছে আশ্রয় চেয়েছেন। আপনিই একমাত্র সাহায্যস্থল এবং সত্য পৌঁছে দেওয়াই আপনার দায়িত্ব। আল্লাহর সাহায্য ছাড়া গুনাহ থেকে বাঁচার কোনো উপায় নেই এবং নেক কাজ করার কোনো শক্তি নেই।',
+        ref: 'তিরমিযী ৩৫২১; ইবনু মাজাহ ৩৮৪৬'
+      },
+      {
+        label: 'রাসূলুল্লাহ ﷺ-এর প্রিয় ব্যাপক দুআ', count: 3,
+        arabic: 'رَبِّ أَعِنِّي وَلَا تُعِنْ عَلَيَّ، وَانْصُرْنِي وَلَا تَنْصُرْ عَلَيَّ، وَامْكُرْ لِي وَلَا تَمْكُرْ عَلَيَّ، وَاهْدِنِي وَيَسِّرِ الْهُدَى لِي، وَانْصُرْنِي عَلَى مَنْ بَغَى عَلَيَّ، رَبِّ اجْعَلْنِي لَكَ شَكَّارًا، لَكَ ذَكَّارًا، لَكَ رَهَّابًا، لَكَ مُطْوَاعًا، لَكَ مُخْبِتًا، إِلَيْكَ أَوَّاهًا مُنِيبًا، رَبِّ تَقَبَّلْ تَوْبَتِي، وَاغْسِلْ حَوْبَتِي، وَأَجِبْ دَعْوَتِي، وَثَبِّتْ حُجَّتِي، وَسَدِّدْ لِسَانِي، وَاهْدِ قَلْبِي، وَاسْلُلْ سَخِيمَةَ صَدْرِي',
+        bangla: 'হে আমার রব, আমাকে সাহায্য করুন, আমার বিরুদ্ধে কাউকে সাহায্য করবেন না। আমাকে বিজয়ী করুন, আমার বিরুদ্ধে কাউকে বিজয়ী করবেন না। আমার জন্য উত্তম কৌশল নির্ধারণ করুন, আমার বিরুদ্ধে কারও পক্ষে করবেন না। আমাকে হিদায়াত দিন, আমার জন্য হিদায়াতের পথ সহজ করুন। যে আমার বিরুদ্ধে অন্যায় করে, তার বিরুদ্ধে আমাকে সাহায্য করুন। হে আল্লাহ, আমাকে আপনার কৃতজ্ঞ বান্দা, অধিক জিকিরকারী, ভয়কারী, পূর্ণ আনুগত্যকারী, বিনয়ী ও প্রত্যাবর্তনকারী বানান। হে আমার রব, আমার তাওবা কবুল করুন, আমার সকল গুনাহ ধুয়ে দিন, আমার দুআ কবুল করুন, আমার সাক্ষ্য-প্রমাণ বহাল করুন, আমার জবান দৃঢ় করুন, আমার অন্তরে হিদায়াত দিন এবং আমার বক্ষ থেকে সমস্ত হিংসা দূর করুন।',
+        ref: 'আবু দাউদ ১৫১০; তিরমিযী ৩৫৫১; ইবনু মাজাহ ৩৮৩০'
+      },
+    ]
   }
 
 };
@@ -1899,34 +2113,167 @@ function toggleMeaning() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// DRAWER
+// FONT SIZE
 // ═══════════════════════════════════════════════════════════
-function buildDrawer() {
+const FONT_SIZES = [1.2, 1.5, 1.8, 2.1, 2.4, 2.8, 3.2];
+let fontIdx = parseInt(localStorage.getItem('font_idx') || '2');
+
+function applyFontSize() {
+  const sz = FONT_SIZES[fontIdx];
+  document.documentElement.style.setProperty('--arabic-size', sz + 'rem');
+  document.getElementById('fontSizeLabel').textContent = toBn(fontIdx + 1);
+}
+function changeFontSize(dir) {
+  fontIdx = Math.max(0, Math.min(FONT_SIZES.length - 1, fontIdx + dir));
+  localStorage.setItem('font_idx', fontIdx);
+  applyFontSize();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PRAYER TIME POPUP
+// ═══════════════════════════════════════════════════════════
+function openPrayerPopup() {
+  updatePrayerPopup();
+  document.getElementById('prayerPopupOverlay').classList.add('open');
+}
+function closePrayerPopup() {
+  document.getElementById('prayerPopupOverlay').classList.remove('open');
+}
+function updatePrayerPopup() {
+  const city = S.cityName || localStorage.getItem('city_name') || '';
+  document.getElementById('popupCity').textContent = city ? `📍 ${city}` : '';
+
+  if (!S.prayerTimes) {
+    document.getElementById('prayerPopupGrid').querySelectorAll('.prayer-tile-time').forEach(el => el.textContent = '--:--');
+    return;
+  }
+  const t = S.prayerTimes.timings;
+  const catPrayer = { fajr:'Fajr', salah:'Dhuhr', morning_evening:'Asr', maghrib:'Maghrib', isha:'Isha' };
+  const current = detectPeriod(t);
+  const curKey = catPrayer[current];
+  const map = { Fajr:'ফজর', Sunrise:'সূর্যোদয়', Dhuhr:'যোহর', Asr:'আসর', Maghrib:'মাগরিব', Isha:'ইশা' };
+  Object.keys(map).forEach(p => {
+    const tile = document.getElementById(`pp-${p}`);
+    if (!tile) return;
+    tile.querySelector('.prayer-tile-time').textContent = t[p] ? fmt12(t[p]) : '--:--';
+    tile.classList.toggle('current-prayer', p === curKey);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACCORDION DRAWER
+// ═══════════════════════════════════════════════════════════
+let drawerOpenCat = null; // which category accordion is open
+
+function buildDrawer(filterQuery) {
   const body = document.getElementById('drawerBody');
-  body.innerHTML = Object.entries(DB).map(([id,cat]) => {
+  const q = (filterQuery || '').toLowerCase().trim();
+
+  if (q) {
+    // Search mode — flat list
+    let results = [];
+    Object.entries(DB).forEach(([catId, cat]) => {
+      cat.duas.forEach((d, i) => {
+        if (d.label.toLowerCase().includes(q) || d.bangla.toLowerCase().includes(q) || d.arabic.includes(filterQuery)) {
+          results.push({ catId, cat, d, i });
+        }
+      });
+    });
+    if (results.length === 0) {
+      body.innerHTML = `<div style="padding:2rem 1.25rem;text-align:center;color:var(--muted);font-size:0.82rem;">কোনো দুআ পাওয়া যায়নি</div>`;
+      return;
+    }
+    body.innerHTML = results.map(({ catId, cat, d, i }) => {
+      const isDone = !!S.done[`${catId}-${i}`];
+      const isCur = catId === S.cat && i === S.idx;
+      return `<div class="cat-dua-item${isDone?' done':''}${isCur?' current':''}" onclick="selectDua('${catId}',${i})">
+        <div class="cat-dua-item-num">${isCur ? '▶' : isDone ? '✓' : toBn(i+1)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="cat-dua-item-label">${d.label}</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:0.15rem">${cat.icon} ${cat.name}</div>
+        </div>
+        ${d.count>1?`<div class="cat-dua-item-count">${toBn(d.count)}×</div>`:''}
+      </div>`;
+    }).join('');
+    return;
+  }
+
+  // Accordion mode
+  body.innerHTML = Object.entries(DB).map(([id, cat]) => {
     const total = cat.duas.length;
     const done = cat.duas.filter((_,i) => S.done[`${id}-${i}`]).length;
     const pct = total ? (done/total)*100 : 0;
-    const r = 12; const circ = 2*Math.PI*r;
+    const r = 11; const circ = 2*Math.PI*r;
     const dash = circ * pct/100;
-    return `<div class="cat-item ${id===S.cat?'active':''}" onclick="selectCat('${id}')">
-      <div class="cat-icon">${cat.icon}</div>
-      <div class="cat-info">
-        <div class="cat-name">${cat.name}</div>
-        <div class="cat-count">${toBn(total)}টি দুআ • ${toBn(done)}টি সম্পন্ন</div>
+    const isOpen = drawerOpenCat === id;
+    const isCurCat = id === S.cat;
+
+    const duaItems = isOpen ? cat.duas.map((d, i) => {
+      const isDone = !!S.done[`${id}-${i}`];
+      const isCur = isCurCat && i === S.idx;
+      return `<div class="cat-dua-item${isDone?' done':''}${isCur?' current':''}" onclick="selectDua('${id}',${i})">
+        <div class="cat-dua-item-num">${isCur ? '▶' : isDone ? '✓' : toBn(i+1)}</div>
+        <div class="cat-dua-item-label" style="flex:1">${d.label}</div>
+        ${d.count>1?`<div class="cat-dua-item-count">${toBn(d.count)}×</div>`:''}
+      </div>`;
+    }).join('') : '';
+
+    return `<div class="cat-accordion">
+      <div class="cat-accordion-header${isCurCat?' active':''}${isOpen?' open':''}" onclick="toggleAccordion('${id}')">
+        <div class="cat-icon" style="font-size:1.1rem;flex-shrink:0">${cat.icon}</div>
+        <div class="cat-accordion-info">
+          <div class="cat-accordion-name">${cat.name}</div>
+          <div class="cat-accordion-count">${toBn(total)}টি দুআ · ${toBn(done)}টি সম্পন্ন</div>
+        </div>
+        <div class="cat-accordion-right">
+          <svg class="cat-progress" viewBox="0 0 26 26" width="26" height="26">
+            <circle cx="13" cy="13" r="${r}" fill="none" stroke="var(--border)" stroke-width="2"/>
+            <circle cx="13" cy="13" r="${r}" fill="none" stroke="var(--gold)" stroke-width="2"
+              stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ/4}" stroke-linecap="round"/>
+          </svg>
+          <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
       </div>
-      <svg class="cat-progress" viewBox="0 0 28 28">
-        <circle cx="14" cy="14" r="${r}" fill="none" stroke="var(--border)" stroke-width="2"/>
-        <circle cx="14" cy="14" r="${r}" fill="none" stroke="var(--gold)" stroke-width="2"
-          stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ/4}" stroke-linecap="round"
-          style="transition:stroke-dasharray 0.5s"/>
-      </svg>
+      <div class="cat-dua-list${isOpen?' open':''}" id="acc-${id}">
+        ${duaItems}
+      </div>
     </div>`;
   }).join('');
+
+  // scroll current cat into view
+  setTimeout(() => {
+    const cur = body.querySelector('.cat-accordion-header.active');
+    if (cur) cur.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, 100);
+}
+
+function toggleAccordion(id) {
+  if (drawerOpenCat === id) {
+    drawerOpenCat = null;
+  } else {
+    drawerOpenCat = id;
+  }
+  buildDrawer(document.getElementById('drawerSearch')?.value || '');
+}
+
+function filterDrawer(val) {
+  buildDrawer(val);
+}
+
+function selectDua(catId, idx) {
+  S.cat = catId;
+  S.idx = idx;
+  S.count = 0;
+  closeDrawer();
+  render();
 }
 
 function openDrawer() {
-  buildDrawer();
+  drawerOpenCat = drawerOpenCat || S.cat;
+  document.getElementById('drawerSearch').value = '';
+  buildDrawer('');
   document.getElementById('drawer').classList.add('open');
   document.getElementById('drawerOverlay').classList.add('open');
 }
@@ -1934,18 +2281,13 @@ function closeDrawer() {
   document.getElementById('drawer').classList.remove('open');
   document.getElementById('drawerOverlay').classList.remove('open');
 }
-function selectCat(id) {
-  if (id === S.cat) { closeDrawer(); return; }
-  S.cat = id; S.idx = 0;
-  closeDrawer();
-  render();
-}
+// keep selectCat for backwards compat
+function selectCat(id) { selectDua(id, 0); }
 
 // ═══════════════════════════════════════════════════════════
-// DUA LIST PANEL
+// DUA LIST PANEL (search panel, kept for reference)
 // ═══════════════════════════════════════════════════════════
-let listMode = 'cat'; // 'cat' = current category only, 'all' = search across all
-
+let listMode = 'cat';
 function openList(mode) {
   listMode = mode || 'cat';
   const panel = document.getElementById('listPanel');
@@ -1953,17 +2295,12 @@ function openList(mode) {
   search.value = '';
   buildList('');
   panel.classList.add('open');
-  // focus search after transition
   setTimeout(() => search.focus(), 350);
 }
-
 function closeList() {
   document.getElementById('listPanel').classList.remove('open');
 }
-
-function filterList(q) {
-  buildList(q.trim());
-}
+function filterList(q) { buildList(q.trim()); }
 
 function buildList(query) {
   const body = document.getElementById('listBody');
@@ -1972,37 +2309,27 @@ function buildList(query) {
   const q = query.toLowerCase();
   const isSearch = q.length > 0;
 
-  let html = '';
-  let totalShown = 0;
-
   if (isSearch) {
-    // Search across ALL categories
-    title.textContent = 'অনুসন্ধান';
-    catLabel.textContent = '';
+    title.textContent = 'অনুসন্ধান'; catLabel.textContent = '';
     let results = [];
     Object.entries(DB).forEach(([catId, cat]) => {
       cat.duas.forEach((d, i) => {
-        const inLabel = d.label.toLowerCase().includes(q);
-        const inBangla = d.bangla.toLowerCase().includes(q);
-        const inArabic = d.arabic.includes(query);
-        const inRef = d.ref.toLowerCase().includes(q);
-        if (inLabel || inBangla || inArabic || inRef) {
+        if (d.label.toLowerCase().includes(q) || d.bangla.toLowerCase().includes(q) || d.arabic.includes(query) || d.ref.toLowerCase().includes(q)) {
           results.push({ catId, cat, d, i });
         }
       });
     });
-
     if (results.length === 0) {
-      html = `<div class="no-results">কোনো দুআ পাওয়া যায়নি</div>`;
+      body.innerHTML = `<div class="no-results">কোনো দুআ পাওয়া যায়নি</div>`;
     } else {
-      html = results.map(({ catId, cat, d, i }) => {
+      body.innerHTML = results.map(({ catId, cat, d, i }) => {
         const isDone = !!S.done[`${catId}-${i}`];
         const isCur = catId === S.cat && i === S.idx;
         return `<div class="list-item${isDone?' done':''}${isCur?' current':''}" onclick="jumpTo('${catId}',${i})">
           <div class="list-item-num">${isCur ? '▶' : isDone ? '✓' : toBn(i+1)}</div>
           <div class="list-item-content">
             <div class="list-item-label">${highlightMatch(d.label, q)}</div>
-            <div class="list-item-arabic">${d.arabic.substring(0, 60)}${d.arabic.length>60?'…':''}</div>
+            <div class="list-item-arabic">${d.arabic.substring(0,60)}${d.arabic.length>60?'…':''}</div>
             <div class="list-item-meta">
               ${d.count>1?`<span class="list-item-count">${toBn(d.count)}×</span>`:''}
               <span class="list-cat-pill">${cat.icon} ${cat.name}</span>
@@ -2010,41 +2337,30 @@ function buildList(query) {
           </div>
         </div>`;
       }).join('');
-      totalShown = results.length;
     }
-
-    body.innerHTML = html;
     return;
   }
 
-  // Show current category list
   const cat = DB[S.cat];
   title.textContent = 'এই বিভাগের দুআ';
   catLabel.textContent = `${cat.icon} ${cat.name}`;
-
-  const items = cat.duas.map((d, i) => {
-    const isDone = !!S.done[`${S.cat}-${i}`];
-    const isCur = i === S.idx;
-    return `<div class="list-item${isDone?' done':''}${isCur?' current':''}" onclick="jumpTo('${S.cat}',${i})">
-      <div class="list-item-num">${isCur ? '▶' : isDone ? '✓' : toBn(i+1)}</div>
-      <div class="list-item-content">
-        <div class="list-item-label">${d.label}</div>
-        <div class="list-item-arabic">${d.arabic.substring(0, 60)}${d.arabic.length>60?'…':''}</div>
-        <div class="list-item-meta">
-          ${d.count>1?`<span class="list-item-count">${toBn(d.count)}×</span>`:''}
-          <span style="font-size:0.65rem;color:var(--muted)">${d.ref}</span>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-
   const done = cat.duas.filter((_,i) => S.done[`${S.cat}-${i}`]).length;
-  body.innerHTML = `
-    <div class="list-section-header">${toBn(cat.duas.length)}টি দুআ · ${toBn(done)}টি সম্পন্ন</div>
-    ${items}
-  `;
-
-  // Scroll current item into view
+  body.innerHTML = `<div class="list-section-header">${toBn(cat.duas.length)}টি দুআ · ${toBn(done)}টি সম্পন্ন</div>` +
+    cat.duas.map((d, i) => {
+      const isDone = !!S.done[`${S.cat}-${i}`];
+      const isCur = i === S.idx;
+      return `<div class="list-item${isDone?' done':''}${isCur?' current':''}" onclick="jumpTo('${S.cat}',${i})">
+        <div class="list-item-num">${isCur ? '▶' : isDone ? '✓' : toBn(i+1)}</div>
+        <div class="list-item-content">
+          <div class="list-item-label">${d.label}</div>
+          <div class="list-item-arabic">${d.arabic.substring(0,60)}${d.arabic.length>60?'…':''}</div>
+          <div class="list-item-meta">
+            ${d.count>1?`<span class="list-item-count">${toBn(d.count)}×</span>`:''}
+            <span style="font-size:0.65rem;color:var(--muted)">${d.ref}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
   setTimeout(() => {
     const cur = body.querySelector('.list-item.current');
     if (cur) cur.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -2061,11 +2377,8 @@ function highlightMatch(text, q) {
 }
 
 function jumpTo(catId, idx) {
-  S.cat = catId;
-  S.idx = idx;
-  S.count = 0;
-  closeList();
-  render();
+  S.cat = catId; S.idx = idx; S.count = 0;
+  closeList(); render();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2074,24 +2387,20 @@ function jumpTo(catId, idx) {
 function updatePrayerUI() {
   if (!S.prayerTimes) return;
   const t = S.prayerTimes.timings;
-  const map = { Fajr:'ফজর', Sunrise:'সূর্যোদয়', Dhuhr:'যোহর', Asr:'আসর', Maghrib:'মাগরিব', Isha:'ইশা' };
-  const current = detectPeriod(t);
   const catPrayer = { fajr:'Fajr', salah:'Dhuhr', morning_evening:'Asr', maghrib:'Maghrib', isha:'Isha' };
+  const current = detectPeriod(t);
   const curPrayerKey = catPrayer[current];
 
+  // Update popup tiles
+  const map = { Fajr:'ফজর', Sunrise:'সূর্যোদয়', Dhuhr:'যোহর', Asr:'আসর', Maghrib:'মাগরিব', Isha:'ইশা' };
   Object.keys(map).forEach(p => {
-    const row = document.getElementById(`pr-${p}`);
-    if (!row) return;
-    row.querySelector('.prayer-row-time').textContent = t[p] ? fmt12(t[p]) : '--:--';
-    row.classList.toggle('current-prayer', p === curPrayerKey);
+    const tile = document.getElementById(`pp-${p}`);
+    if (!tile) return;
+    tile.querySelector('.prayer-tile-time').textContent = t[p] ? fmt12(t[p]) : '--:--';
+    tile.classList.toggle('current-prayer', p === curPrayerKey);
   });
 
   document.getElementById('hdrPrayer').textContent = DB[current]?.label || DB[S.cat].label;
-
-  if (S.prayerTimes.date?.hijri) {
-    const h = S.prayerTimes.date.hijri;
-    // could show in header if desired
-  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2154,6 +2463,7 @@ window.addEventListener('offline', handleOnline);
 async function init() {
   loadDone();
   loadTheme();
+  applyFontSize();
   updateClock();
   setInterval(updateClock, 30000);
 
