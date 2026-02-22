@@ -50,7 +50,121 @@ html, body {
   user-select: none;
 }
 
-/* ═══════════════ SPLASH ═══════════════ */
+/* ═══════════════ LIST PANEL ═══════════════ */
+#listPanel {
+  position: fixed; inset: 0; z-index: 200;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+}
+#listPanel.open { transform: translateY(0); }
+
+.list-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.list-header-left { display: flex; flex-direction: column; gap: 0.1rem; }
+.list-header-title { font-size: 0.65rem; color: var(--muted2); letter-spacing: 0.12em; text-transform: uppercase; }
+.list-header-cat { font-size: 1rem; color: var(--text); font-weight: 600; }
+
+.list-search {
+  padding: 0.6rem 1.25rem;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+.list-search input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.list-search input::placeholder { color: var(--muted); }
+.list-search input:focus { border-color: var(--gold); }
+
+.list-body {
+  flex: 1; overflow-y: auto; padding: 0.5rem 0;
+}
+.list-body::-webkit-scrollbar { width: 2px; }
+.list-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+.list-section-header {
+  padding: 0.6rem 1.25rem 0.3rem;
+  font-size: 0.6rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted);
+}
+.list-item {
+  display: flex; align-items: flex-start;
+  gap: 0.9rem;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  border-bottom: 1px solid transparent;
+}
+.list-item:active { background: var(--surface); }
+.list-item.current {
+  background: var(--gold-dim);
+  border-left: 2px solid var(--gold);
+}
+.list-item-num {
+  min-width: 1.6rem; height: 1.6rem;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  font-size: 0.65rem; color: var(--muted2);
+  background: var(--surface2);
+  flex-shrink: 0; margin-top: 0.05rem;
+}
+.list-item.done .list-item-num {
+  background: var(--gold-dim);
+  color: var(--gold);
+}
+.list-item.current .list-item-num {
+  background: var(--gold);
+  color: var(--bg);
+}
+.list-item-content { flex: 1; min-width: 0; }
+.list-item-label {
+  font-size: 0.82rem; color: var(--text);
+  line-height: 1.35;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.list-item.done .list-item-label { color: var(--muted2); }
+.list-item-arabic {
+  font-family: 'Amiri Quran', serif;
+  font-size: 0.9rem; color: var(--muted2);
+  direction: rtl; text-align: right;
+  margin-top: 0.2rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.list-item-meta {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+.list-item-count {
+  font-size: 0.65rem; color: var(--gold);
+  background: var(--gold-dim);
+  padding: 0.1rem 0.4rem; border-radius: 3px;
+}
+.list-cat-pill {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.6rem; color: var(--muted);
+  background: var(--surface2);
+  padding: 0.15rem 0.45rem; border-radius: 4px;
+}
+.no-results {
+  padding: 3rem 1.25rem; text-align: center;
+  color: var(--muted); font-size: 0.85rem;
+}
+
 #splash {
   position: fixed; inset: 0; z-index: 999;
   background: var(--bg);
@@ -360,6 +474,24 @@ header {
 <!-- DRAWER OVERLAY -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 
+<!-- DUA LIST PANEL -->
+<div id="listPanel">
+  <div class="list-header">
+    <div class="list-header-left">
+      <span class="list-header-title" id="listHeaderTitle">সকল দুআ</span>
+      <span class="list-header-cat" id="listHeaderCat"></span>
+    </div>
+    <button class="icon-btn" onclick="closeList()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="list-search">
+    <input type="search" id="listSearch" placeholder="দুআ খুঁজুন..." oninput="filterList(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+  <div class="list-body" id="listBody"></div>
+</div>
+
+
 <!-- SIDE DRAWER -->
 <div class="drawer" id="drawer">
   <div class="drawer-header">
@@ -396,6 +528,10 @@ header {
       <!-- Meaning toggle -->
       <button class="icon-btn" id="meaningBtn" onclick="toggleMeaning()" title="অর্থ দেখুন">
         <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </button>
+      <!-- Dua List -->
+      <button class="icon-btn" onclick="openList()" title="সব দুআ দেখুন">
+        <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       </button>
       <!-- Theme toggle -->
       <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="থিম পরিবর্তন">
@@ -1802,6 +1938,133 @@ function selectCat(id) {
   if (id === S.cat) { closeDrawer(); return; }
   S.cat = id; S.idx = 0;
   closeDrawer();
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════
+// DUA LIST PANEL
+// ═══════════════════════════════════════════════════════════
+let listMode = 'cat'; // 'cat' = current category only, 'all' = search across all
+
+function openList(mode) {
+  listMode = mode || 'cat';
+  const panel = document.getElementById('listPanel');
+  const search = document.getElementById('listSearch');
+  search.value = '';
+  buildList('');
+  panel.classList.add('open');
+  // focus search after transition
+  setTimeout(() => search.focus(), 350);
+}
+
+function closeList() {
+  document.getElementById('listPanel').classList.remove('open');
+}
+
+function filterList(q) {
+  buildList(q.trim());
+}
+
+function buildList(query) {
+  const body = document.getElementById('listBody');
+  const title = document.getElementById('listHeaderTitle');
+  const catLabel = document.getElementById('listHeaderCat');
+  const q = query.toLowerCase();
+  const isSearch = q.length > 0;
+
+  let html = '';
+  let totalShown = 0;
+
+  if (isSearch) {
+    // Search across ALL categories
+    title.textContent = 'অনুসন্ধান';
+    catLabel.textContent = '';
+    let results = [];
+    Object.entries(DB).forEach(([catId, cat]) => {
+      cat.duas.forEach((d, i) => {
+        const inLabel = d.label.toLowerCase().includes(q);
+        const inBangla = d.bangla.toLowerCase().includes(q);
+        const inArabic = d.arabic.includes(query);
+        const inRef = d.ref.toLowerCase().includes(q);
+        if (inLabel || inBangla || inArabic || inRef) {
+          results.push({ catId, cat, d, i });
+        }
+      });
+    });
+
+    if (results.length === 0) {
+      html = `<div class="no-results">কোনো দুআ পাওয়া যায়নি</div>`;
+    } else {
+      html = results.map(({ catId, cat, d, i }) => {
+        const isDone = !!S.done[`${catId}-${i}`];
+        const isCur = catId === S.cat && i === S.idx;
+        return `<div class="list-item${isDone?' done':''}${isCur?' current':''}" onclick="jumpTo('${catId}',${i})">
+          <div class="list-item-num">${isCur ? '▶' : isDone ? '✓' : toBn(i+1)}</div>
+          <div class="list-item-content">
+            <div class="list-item-label">${highlightMatch(d.label, q)}</div>
+            <div class="list-item-arabic">${d.arabic.substring(0, 60)}${d.arabic.length>60?'…':''}</div>
+            <div class="list-item-meta">
+              ${d.count>1?`<span class="list-item-count">${toBn(d.count)}×</span>`:''}
+              <span class="list-cat-pill">${cat.icon} ${cat.name}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      totalShown = results.length;
+    }
+
+    body.innerHTML = html;
+    return;
+  }
+
+  // Show current category list
+  const cat = DB[S.cat];
+  title.textContent = 'এই বিভাগের দুআ';
+  catLabel.textContent = `${cat.icon} ${cat.name}`;
+
+  const items = cat.duas.map((d, i) => {
+    const isDone = !!S.done[`${S.cat}-${i}`];
+    const isCur = i === S.idx;
+    return `<div class="list-item${isDone?' done':''}${isCur?' current':''}" onclick="jumpTo('${S.cat}',${i})">
+      <div class="list-item-num">${isCur ? '▶' : isDone ? '✓' : toBn(i+1)}</div>
+      <div class="list-item-content">
+        <div class="list-item-label">${d.label}</div>
+        <div class="list-item-arabic">${d.arabic.substring(0, 60)}${d.arabic.length>60?'…':''}</div>
+        <div class="list-item-meta">
+          ${d.count>1?`<span class="list-item-count">${toBn(d.count)}×</span>`:''}
+          <span style="font-size:0.65rem;color:var(--muted)">${d.ref}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const done = cat.duas.filter((_,i) => S.done[`${S.cat}-${i}`]).length;
+  body.innerHTML = `
+    <div class="list-section-header">${toBn(cat.duas.length)}টি দুআ · ${toBn(done)}টি সম্পন্ন</div>
+    ${items}
+  `;
+
+  // Scroll current item into view
+  setTimeout(() => {
+    const cur = body.querySelector('.list-item.current');
+    if (cur) cur.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, 50);
+}
+
+function highlightMatch(text, q) {
+  if (!q) return text;
+  const idx = text.toLowerCase().indexOf(q);
+  if (idx < 0) return text;
+  return text.substring(0, idx) +
+    `<mark style="background:var(--gold-dim);color:var(--gold);border-radius:2px;">${text.substring(idx, idx+q.length)}</mark>` +
+    text.substring(idx + q.length);
+}
+
+function jumpTo(catId, idx) {
+  S.cat = catId;
+  S.idx = idx;
+  S.count = 0;
+  closeList();
   render();
 }
 
